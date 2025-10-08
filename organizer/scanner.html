@@ -521,29 +521,30 @@
                 updateProcessedCount();
 
                 // Show loading state
-                MessageDisplay.showLoading('Validating QR code...');
+                MessageDisplay.showLoading('Checking attendee status...');
 
-                // Optional: Pre-validate QR token
+                // Check attendee status first
                 try {
-                    const validateResponse = await api.validateQRToken(qrData);
+                    const statusResponse = await api.checkAttendeeStatus(qrData);
                     
-                    if (!validateResponse.success) {
-                        MessageDisplay.showResultModal(validateResponse.message);
+                    if (!statusResponse.success) {
+                        MessageDisplay.showResultModal(statusResponse.message);
                         return;
                     }
 
                     // If already checked in, show info message
-                    if (validateResponse.already_checked_in) {
-                        MessageDisplay.showResultModal(validateResponse.message);
+                    if (statusResponse.is_checked_in) {
+                        MessageDisplay.showResultModal(statusResponse.message, 'Already Checked In', statusResponse.is_checked_in);
                         return;
                     }
 
                     // Update loading message
                     MessageDisplay.showLoading('Processing check-in...');
 
-                } catch (validateError) {
-                    console.log('Pre-validation failed, proceeding with direct check-in:', validateError);
-                    // Continue with direct check-in if validation fails
+                } catch (statusError) {
+                    console.log('Status check failed, proceeding with direct check-in:', statusError);
+                    // Continue with direct check-in if status check fails
+                    MessageDisplay.showLoading('Processing check-in...');
                 }
 
                 // Process QR code for check-in
@@ -657,7 +658,15 @@
                 console.error('Manual check-in failed:', error);
                 
                 // Handle error with enhanced message display
-                const errorMessage = MessageDisplay.handleApiError(error);
+                let errorMessage = MessageDisplay.handleApiError(error);
+                
+                // Check for specific error messages from new backend
+                if (error.detail && error.detail.includes('already checked in')) {
+                    errorMessage = error.detail;
+                } else if (error.message && error.message.includes('already checked in')) {
+                    errorMessage = error.message;
+                }
+                
                 hideManualModal();
                 MessageDisplay.showResultModal(errorMessage);
             }
@@ -815,7 +824,15 @@
                 }
             } catch (error) {
                 console.error('Duplicate pass verification failed:', error);
-                const errorMessage = MessageDisplay.handleApiError(error);
+                let errorMessage = MessageDisplay.handleApiError(error);
+                
+                // Check for specific error messages from new backend
+                if (error.detail && error.detail.includes('already checked in')) {
+                    errorMessage = error.detail;
+                } else if (error.message && error.message.includes('already checked in')) {
+                    errorMessage = error.message;
+                }
+                
                 MessageDisplay.showResultModal(errorMessage);
             }
         }

@@ -50,10 +50,10 @@ class MessageDisplay {
     /**
      * Get message type for result handling
      */
-    static getMessageType(message) {
-        if (message.includes('✅') && !message.includes('already checked in')) return 'success';
+    static getMessageType(message, isCheckedIn = null) {
+        if (message.includes('✅') && !message.includes('already checked in') && !message.includes('is already checked in')) return 'success';
         if (message.includes('❌')) return 'error';
-        if (message.includes('already checked in')) return 'info';
+        if (message.includes('already checked in') || message.includes('is already checked in') || isCheckedIn === true) return 'info';
         return 'info';
     }
 
@@ -91,13 +91,13 @@ class MessageDisplay {
     /**
      * Show formatted message in result modal
      */
-    static showResultModal(message, title = null) {
+    static showResultModal(message, title = null, isCheckedIn = null) {
         const modal = document.getElementById('resultModal');
         const icon = document.getElementById('resultIcon');
         const titleEl = document.getElementById('resultTitle');
         const messageEl = document.getElementById('resultMessage');
         
-        const messageType = this.getMessageType(message);
+        const messageType = this.getMessageType(message, isCheckedIn);
         const messageHTML = this.createMessageHTML(message);
         
         // Set icon and title based on message type
@@ -141,9 +141,10 @@ class MessageDisplay {
             'not found': '❌ Attendee not found - Please contact organizer',
             'access denied': '❌ Access denied - You are not authorized for this event',
             'already checked in': '✅ Attendee is already checked in',
+            'is already checked in': '✅ Attendee is already checked in',
             'duplicate': '⚠️ Duplicate pass detected - verification required'
         };
-        
+
         const lowerMessage = errorMessage.toLowerCase();
         for (const [key, value] of Object.entries(enhancedErrors)) {
             if (lowerMessage.includes(key)) {

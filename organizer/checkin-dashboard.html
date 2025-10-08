@@ -415,12 +415,14 @@
                 
                 // Handle error with enhanced message
                 let errorMessage = 'Failed to check in attendee';
-                if (error.message.includes('already checked in')) {
+                if (error.message.includes('already checked in') || error.message.includes('is already checked in')) {
                     errorMessage = '✅ Attendee is already checked in';
                 } else if (error.message.includes('not found')) {
                     errorMessage = '❌ Attendee not found for this event';
                 } else if (error.detail) {
                     errorMessage = error.detail;
+                } else if (error.message) {
+                    errorMessage = error.message;
                 }
                 
                 Utils.showToast(errorMessage, 'error');

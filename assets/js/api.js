@@ -387,6 +387,13 @@ class ApiService {
         return this.post('/api/checkin/validate', { qr_token: qrToken });
     }
 
+    /**
+     * Check attendee status without performing check-in
+     */
+    async checkAttendeeStatus(qrToken) {
+        return this.post('/api/checkin/status', { qr_token: qrToken });
+    }
+
     // ============= Dashboard API Methods =============
     
     /**
